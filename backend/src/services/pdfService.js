@@ -1,17 +1,13 @@
-import { PDFParse } from "pdf-parse";
+import pdf from "pdf-parse/lib/pdf-parse.js";
 import { ApiError } from "../utils/apiError.js";
 
 export const extractText = async (buffer) => {
-  let parser;
-
   try {
     if (!buffer || !Buffer.isBuffer(buffer)) {
       throw ApiError.badRequest("Invalid PDF buffer");
     }
 
-    parser = new PDFParse({ data: buffer });
-
-    const result = await parser.getText();
+    const result = await pdf(buffer);
 
     const text = result.text?.trim() || "";
 
@@ -24,7 +20,7 @@ export const extractText = async (buffer) => {
     return {
       text,
       meta: {
-        pages: result.total || 0,
+        pages: result.numpages || 0,
       },
     };
   } catch (error) {
@@ -35,9 +31,5 @@ export const extractText = async (buffer) => {
     throw ApiError.badRequest(
       `Failed to extract text from PDF: ${error.message}`,
     );
-  } finally {
-    if (parser) {
-      await parser.destroy();
-    }
   }
 };
