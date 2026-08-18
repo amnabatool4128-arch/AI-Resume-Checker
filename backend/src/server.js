@@ -16,10 +16,8 @@ import insightsRoutes from "./routes/insights.js";
 import versionsRoutes from "./routes/versions.js";
 import historyRoutes from "./routes/history.js";
 
-
 const app = express();
 
-// Trust reverse proxy
 app.set("trust proxy", 1);
 
 // CORS
@@ -37,7 +35,7 @@ app.use(express.urlencoded({ extended: true }));
 // Cookies
 app.use(cookieParser());
 
-// Request logging in development
+// Request logging
 if (env.nodeEnv === "development") {
   app.use(morgan("dev"));
 }
@@ -51,31 +49,53 @@ app.use("/api/insights", insightsRoutes);
 app.use("/api/versions", versionsRoutes);
 app.use("/api/history", historyRoutes);
 
-
-// 404 handler
+// 404
 app.use(notFoundHandler);
 
 // Error handler
 app.use(errorHandler);
 
-const start = async () => {
-  try {
-    // Connect database first
-    await connectDB();
+// Connect DB for Vercel
+let dbConnected = false;
 
-    // Start server only after DB connection
-    app.listen(env.port, () => {
-      console.log(`Server running on port ${env.port}`);
-    });
-  } catch (error) {
-    console.error("Failed to start server:", error);
-    process.exit(1);
+const ensureDB = async () => {
+  if (!dbConnected) {
+    await connectDB();
+    dbConnected = true;
   }
 };
 
-// Handle unhandled promise rejections
+// Vercel serverless handler
+export default async function handler(req, res) {
+  try {
+    await ensureDB();
+    return app(req, res);
+  } catch (error) {
+    console.error("Serverless handler error:", error);
+    return res.status(500).json({
+      message: "Server failed to initialize",
+    });
+  }
+}
+
+// Local development
+if (env.nodeEnv === "development") {
+  const start = async () => {
+    try {
+      await connectDB();
+
+      app.listen(env.port, () => {
+        console.log(`Server running on port ${env.port}`);
+      });
+    } catch (error) {
+      console.error("Failed to start server:", error);
+      process.exit(1);
+    }
+  };
+
+  start();
+}
+
 process.on("unhandledRejection", (error) => {
   console.error("Unhandled promise rejection:", error);
 });
-
-start();
