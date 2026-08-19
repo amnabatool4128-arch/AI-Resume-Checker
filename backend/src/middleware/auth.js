@@ -8,10 +8,6 @@ import { verifyToken } from "../utils/jwt.js";
 export const requireAuth = async (req, res, next) => {
   try {
     const token = req.cookies?.[env.cookieName];
-    console.log("Cookie header:", req.headers.cookie);
-    console.log("Parsed cookies:", req.cookies);
-    console.log("Expected cookie name:", env.cookieName);
-    console.log("Token:", token ? "FOUND" : "NOT FOUND");
 
     if (!token) {
       throw ApiError.unauthorized("Authentication required");
