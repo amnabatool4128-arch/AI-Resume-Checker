@@ -11,6 +11,9 @@
   "author": "",
   "license": "ISC",
   "type": "module",
+  "engines": {
+    "node": ">=22.3.0"
+  },
   "dependencies": {
     "@google/genai": "^2.17.1",
     "bcryptjs": "^3.0.3",
@@ -24,7 +27,7 @@
     "mongoose": "^9.9.2",
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
-    "pdf-parse": "^2.4.5",
+    "unpdf": "^1.8.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {

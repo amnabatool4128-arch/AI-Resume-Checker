@@ -1,4 +1,4 @@
-import { PDFParse } from "pdf-parse";
+import { extractText as extractPdfText, getDocumentProxy } from "unpdf";
 import { ApiError } from "../utils/apiError.js";
 
 export const extractText = async (buffer) => {
@@ -7,15 +7,12 @@ export const extractText = async (buffer) => {
       throw ApiError.badRequest("Invalid PDF buffer");
     }
 
-    const parser = new PDFParse({
-      data: buffer,
+    const pdf = await getDocumentProxy(new Uint8Array(buffer));
+    const { text: pages, totalPages } = await extractPdfText(pdf, {
+      mergePages: true,
     });
 
-    const result = await parser.getText();
-
-    const text = result.text?.trim() || "";
-
-    await parser.destroy();
+    const text = pages?.trim() || "";
 
     if (text.length < 50) {
       throw ApiError.badRequest(
@@ -26,7 +23,7 @@ export const extractText = async (buffer) => {
     return {
       text,
       meta: {
-        pages: result.total || 0,
+        pages: totalPages || 0,
       },
     };
   } catch (error) {
