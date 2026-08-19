@@ -401,7 +401,29 @@ export const analyzeResume = async (
   );
 
   try {
-    const result = await callGemini(prompt);
+    let result;
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        result = await callGemini(prompt);
+        break;
+      } catch (error) {
+        const is503 =
+          error?.status === 503 ||
+          error?.status === "UNAVAILABLE" ||
+          error?.code === 503;
+
+        if (!is503 || attempt === 3) {
+          throw error;
+        }
+
+        console.log(
+          `Gemini temporarily unavailable. Retrying (${attempt}/3)...`,
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, attempt * 2000));
+      }
+    }
 
     return {
       ...result,
