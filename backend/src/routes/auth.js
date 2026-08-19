@@ -4,7 +4,7 @@ import { z } from "zod";
 import { env } from "../config/env.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { signToken } from "../utils/jwt.js";
+import { signToken, cookieOptions } from "../utils/jwt.js";
 
 import { validate } from "../middleware/validate.js";
 import { requireAuth } from "../middleware/auth.js";
@@ -46,7 +46,7 @@ const issueSession = (res, user) => {
     sub: user._id.toString(),
   });
 
-  res.cookie(env.cookieName, token, env.cookieOptions);
+  res.cookie(env.cookieName, token, cookieOptions);
 };
 
 // =========================
@@ -118,7 +118,7 @@ router.post(
 router.post(
   "/logout",
   asyncHandler(async (req, res) => {
-    res.clearCookie(env.cookieName, env.cookieOptions);
+    res.clearCookie(env.cookieName, cookieOptions);
 
     res.json({
       message: "Logged out successfully",
